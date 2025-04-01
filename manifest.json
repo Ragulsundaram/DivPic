@@ -3,15 +3,25 @@
   "name": "Element Screenshot",
   "version": "1.0",
   "description": "Capture screenshots of HTML elements with ease",
-  "permissions": ["activeTab", "downloads"],
+  "permissions": ["activeTab", "downloads", "notifications"],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "128": "images/icon128.png"
+    }
   },
   "content_scripts": [{
     "matches": ["<all_urls>"],
     "js": ["content.js"]
+  }],
+  "icons": {
+    "128": "images/icon128.png"
+  },
+  "web_accessible_resources": [{
+    "resources": ["images/*"],
+    "matches": ["<all_urls>"]
   }]
 }

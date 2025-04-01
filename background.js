@@ -10,14 +10,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       });
     });
   } else if (message.action === 'downloadScreenshot') {
+    const filename = `screenshot-${Date.now()}.png`;
     chrome.downloads.download({
       url: message.dataUrl,
-      filename: `screenshot-${Date.now()}.png`
-    }).then(() => {
-      // After download completes, notify that screenshot is taken
+      filename: filename
+    }).then((downloadId) => {
+      // Use a simple text-based notification
+      chrome.notifications.create(`screenshot-${downloadId}`, {
+        type: 'basic',
+        title: 'Screenshot Saved',
+        message: `${filename} has been downloaded to your Downloads folder`,
+        iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', // 1x1 transparent PNG
+        priority: 2,
+        requireInteraction: false,
+        silent: true
+      });
+
       chrome.tabs.sendMessage(sender.tab.id, { action: 'screenshotTaken' });
-      // Show the popup again
-      chrome.action.openPopup();
+    }).catch(error => {
+      console.error('Download failed:', error);
     });
+  }
+});
+
+// Remove the button click listener since we removed the buttons
+chrome.notifications.onButtonClicked.addListener((notificationId) => {
+  if (notificationId.startsWith('screenshot-')) {
+    chrome.downloads.showDefaultFolder();
   }
 });
