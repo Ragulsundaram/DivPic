@@ -1,5 +1,5 @@
 let isSelecting = false;
-let highlightElement = null;
+let highlightElement = null;  // Keep this consistent throughout the file
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message.action === 'startSelection') {
@@ -14,6 +14,11 @@ chrome.runtime.onMessage.addListener((message) => {
       highlightElement.style.pointerEvents = 'none';
       highlightElement.style.zIndex = '10000';
       document.body.appendChild(highlightElement);
+    }
+  } else if (message.action === 'screenshotTaken') {
+    isSelecting = false;
+    if (highlightElement) {
+      highlightElement.style.display = 'none';
     }
   }
 });
@@ -85,5 +90,15 @@ chrome.runtime.onMessage.addListener((message) => {
       });
     };
     img.src = message.screenshot;
+  }
+});
+
+// Update the screenshotTaken handler
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'screenshotTaken') {
+    isSelecting = false;
+    if (highlightOverlay) {
+      highlightOverlay.style.display = 'none';
+    }
   }
 });

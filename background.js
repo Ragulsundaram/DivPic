@@ -14,19 +14,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.downloads.download({
       url: message.dataUrl,
       filename: filename
-    }).then((downloadId) => {
-      // Use a simple text-based notification
-      chrome.notifications.create(`screenshot-${downloadId}`, {
-        type: 'basic',
-        title: 'Screenshot Saved',
-        message: `${filename} has been downloaded to your Downloads folder`,
-        iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', // 1x1 transparent PNG
-        priority: 2,
-        requireInteraction: false,
-        silent: true
-      });
+    }).then(async (downloadId) => {
+      try {
+        // First show the notification
+        await chrome.notifications.create(`screenshot-${downloadId}`, {
+          type: 'basic',
+          title: 'Screenshot Saved',
+          message: `${filename} has been downloaded`,
+          iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+          priority: 2,
+          requireInteraction: false,
+          silent: true
+        });
 
-      chrome.tabs.sendMessage(sender.tab.id, { action: 'screenshotTaken' });
+        // Then send message to content script
+        await chrome.tabs.sendMessage(sender.tab.id, { action: 'screenshotTaken' });
+
+        // Finally reopen the popup
+        await chrome.action.openPopup();
+      } catch (error) {
+        console.error('Error in download process:', error);
+      }
     }).catch(error => {
       console.error('Download failed:', error);
     });
