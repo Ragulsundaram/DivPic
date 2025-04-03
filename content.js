@@ -181,6 +181,10 @@ chrome.runtime.onMessage.addListener((message) => {
         });
       } catch (error) {
         console.error('Error copying to clipboard:', error);
+        chrome.runtime.sendMessage({
+          action: 'showError',
+          message: 'Failed to copy screenshot. Please try again.'
+        });
       }
     };
     img.src = message.dataUrl;
@@ -252,6 +256,10 @@ function handleCopyToClipboard(message) {
       });
     } catch (error) {
       console.error('Error copying to clipboard:', error);
+      chrome.runtime.sendMessage({
+        action: 'showError',
+        message: 'Failed to copy screenshot. Please try again.'
+      });
     }
   };
   img.src = message.dataUrl;

@@ -1,8 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Element Screenshot",
-  "version": "1.0",
-  "description": "Capture screenshots of HTML elements with ease",
+  "version": "1.0.0",
+  "description": "Capture screenshots of HTML elements with ease. Select any element on the webpage and save or copy the screenshot instantly.",
+  "author": "Ragul Sundaram",
+  "homepage_url": "https://github.com/Ragulsundaram/Shotdiv",
   "permissions": ["activeTab", "downloads", "notifications", "clipboardWrite", "storage"],
   "background": {
     "service_worker": "background.js"
@@ -10,6 +12,9 @@
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
+      "16": "images/icon16.png",
+      "32": "images/icon32.png",
+      "48": "images/icon48.png",
       "128": "images/icon128.png"
     }
   },
@@ -27,6 +32,9 @@
     "js": ["content.js"]
   }],
   "icons": {
+    "16": "images/icon16.png",
+    "32": "images/icon32.png",
+    "48": "images/icon48.png",
     "128": "images/icon128.png"
   },
   "web_accessible_resources": [{

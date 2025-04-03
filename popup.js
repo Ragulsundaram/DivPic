@@ -55,3 +55,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }, 2000);
   }
 });
+
+window.addEventListener('unload', () => {
+  // Cleanup listeners
+  document.querySelectorAll('input[name="saveOption"]')
+    .forEach(radio => radio.removeEventListener('change'));
+});
