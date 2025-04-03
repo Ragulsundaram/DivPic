@@ -22,4 +22,4 @@ The extension requires these permissions for basic functionality:
 This privacy policy may be updated occasionally. Changes will be reflected in the "Last Updated" date.
 
 ### Contact
-For questions about this privacy policy, contact: [Your Contact Email]
+For questions about this privacy policy, contact: Your Contact Email
