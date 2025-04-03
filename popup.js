@@ -32,9 +32,9 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
           type: 'basic',
           title: 'Extension Updated',
           message: 'Please refresh the page to use the updated extension.',
-          iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+          iconUrl: 'images/icon128.png', // Replace base64 icon with actual icon
           priority: 2,
-          requireInteraction: false // Changed to false
+          requireInteraction: false
         });
       }
     });

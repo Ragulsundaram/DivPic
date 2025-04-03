@@ -59,3 +59,9 @@ h1 {
 .radio-label input[type="radio"] {
   margin: 0;
 }
+
+.logo {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 12px;
+}
