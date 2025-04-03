@@ -163,3 +163,14 @@ chrome.runtime.onMessage.addListener((message) => {
     img.src = message.dataUrl;
   }
 });
+
+// Add keyboard event listener for Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && isSelecting) {
+    isSelecting = false;
+    document.body.style.cursor = 'default';
+    if (highlightElement) {
+      highlightElement.style.display = 'none';
+    }
+  }
+});
