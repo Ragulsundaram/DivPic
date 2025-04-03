@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "DivPic",
+    "description": "The name of the extension"
+  },
+  "appDesc": {
+    "message": "Capture screenshots of HTML elements with ease. Select any element on the webpage and save or copy the screenshot instantly.",
+    "description": "The description of the extension"
+  }
+}
