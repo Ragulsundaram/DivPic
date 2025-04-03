@@ -133,7 +133,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message.action === 'copyToClipboard') {
-    // Create a temporary canvas to handle the clipboard copy
     const img = new Image();
     img.onload = async () => {
       const canvas = document.createElement('canvas');
@@ -152,6 +151,11 @@ chrome.runtime.onMessage.addListener((message) => {
           })
         ]);
         console.log('Successfully copied to clipboard');
+        // Send success message to background script
+        chrome.runtime.sendMessage({ 
+          action: 'clipboardSuccess'
+        });
+        // Send message to popup
         chrome.runtime.sendMessage({ 
           action: 'screenshotTaken', 
           saveOption: 'clipboard' 

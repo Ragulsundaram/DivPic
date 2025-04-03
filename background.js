@@ -18,7 +18,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     if (message.saveOption === 'clipboard') {
       console.log('Attempting to copy to clipboard');
-      // Send the data back to content script to handle clipboard operations
       chrome.tabs.sendMessage(sender.tab.id, {
         action: 'copyToClipboard',
         dataUrl: message.dataUrl
@@ -47,6 +46,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
       });
     }
+  } else if (message.action === 'clipboardSuccess') {
+    // Add notification for clipboard success
+    chrome.notifications.create(`clipboard-${Date.now()}`, {
+      type: 'basic',
+      title: 'Screenshot Copied',
+      message: 'Screenshot has been copied to clipboard',
+      iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+      priority: 2,
+      requireInteraction: false,
+      silent: true
+    });
   }
 });
 
