@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Element Screenshot",
+  "name": "DivPic",
   "version": "1.0.0",
   "description": "Capture screenshots of HTML elements with ease. Select any element on the webpage and save or copy the screenshot instantly.",
   "author": "Ragul Sundaram",
@@ -40,5 +40,6 @@
   "web_accessible_resources": [{
     "resources": ["images/*"],
     "matches": ["<all_urls>"]
-  }]
+  }],
+  "default_locale": "en"
 }

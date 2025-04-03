@@ -1,4 +1,4 @@
-# Element Screenshot Chrome Extension
+# DivPic Chrome Extension
 
 A Chrome extension that allows users to capture screenshots of specific HTML elements on any webpage with ease.
 
