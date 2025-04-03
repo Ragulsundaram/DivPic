@@ -1,26 +1,44 @@
 let isSelecting = false;
-let highlightElement = null;  // Keep this consistent throughout the file
+let highlightElement = null;
 
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.action === 'startSelection') {
-    isSelecting = true;
-    document.body.style.cursor = 'crosshair';
-    
-    if (!highlightElement) {
-      highlightElement = document.createElement('div');
-      highlightElement.style.position = 'fixed';
-      highlightElement.style.border = '2px solid #2563eb';
-      highlightElement.style.backgroundColor = 'rgba(37, 99, 235, 0.1)';
-      highlightElement.style.pointerEvents = 'none';
-      highlightElement.style.zIndex = '10000';
-      document.body.appendChild(highlightElement);
-    }
-  } else if (message.action === 'screenshotTaken') {
-    isSelecting = false;
-    if (highlightElement) {
-      highlightElement.style.display = 'none';
-    }
+// Single message listener to handle all actions
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  switch (message.action) {
+    case 'startSelection':
+      window.screenshotSaveOption = message.saveOption;
+      isSelecting = true;
+      document.body.style.cursor = 'crosshair';
+      
+      if (!highlightElement) {
+        highlightElement = document.createElement('div');
+        highlightElement.style.position = 'fixed';
+        highlightElement.style.border = '2px solid #2563eb';
+        highlightElement.style.backgroundColor = 'rgba(37, 99, 235, 0.1)';
+        highlightElement.style.pointerEvents = 'none';
+        highlightElement.style.zIndex = '10000';
+        document.body.appendChild(highlightElement);
+      }
+      highlightElement.style.display = 'block';
+      break;
+
+    case 'screenshotTaken':
+      isSelecting = false;
+      document.body.style.cursor = 'default';
+      if (highlightElement) {
+        highlightElement.style.display = 'none';
+      }
+      break;
+
+    case 'cropScreenshot':
+      handleCropScreenshot(message);
+      break;
+
+    case 'copyToClipboard':
+      handleCopyToClipboard(message);
+      break;
   }
+  // Return true to indicate we'll respond asynchronously
+  return true;
 });
 
 document.addEventListener('mousemove', (e) => {
@@ -29,8 +47,9 @@ document.addEventListener('mousemove', (e) => {
   const element = document.elementFromPoint(e.clientX, e.clientY);
   if (element) {
     const rect = element.getBoundingClientRect();
-    highlightElement.style.top = `${rect.top + window.scrollY}px`;
-    highlightElement.style.left = `${rect.left + window.scrollX}px`;
+    // Update positioning to use fixed positioning relative to viewport
+    highlightElement.style.top = `${rect.top}px`;
+    highlightElement.style.left = `${rect.left}px`;
     highlightElement.style.width = `${rect.width}px`;
     highlightElement.style.height = `${rect.height}px`;
     highlightElement.style.display = 'block';
@@ -178,3 +197,62 @@ document.addEventListener('keydown', (e) => {
     }
   }
 });
+
+// Add these helper functions
+function handleCropScreenshot(message) {
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio;
+    
+    canvas.width = message.area.width * dpr;
+    canvas.height = message.area.height * dpr;
+    
+    ctx.drawImage(img,
+      message.area.x * dpr,
+      message.area.y * dpr,
+      message.area.width * dpr,
+      message.area.height * dpr,
+      0, 0,
+      message.area.width * dpr,
+      message.area.height * dpr
+    );
+    
+    const croppedDataUrl = canvas.toDataURL('image/png');
+    chrome.runtime.sendMessage({
+      action: 'downloadScreenshot',
+      dataUrl: croppedDataUrl,
+      saveOption: message.saveOption
+    });
+  };
+  img.src = message.screenshot;
+}
+
+function handleCopyToClipboard(message) {
+  const img = new Image();
+  img.onload = async () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    
+    try {
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'image/png': blob
+        })
+      ]);
+      chrome.runtime.sendMessage({ action: 'clipboardSuccess' });
+      chrome.runtime.sendMessage({ 
+        action: 'screenshotTaken', 
+        saveOption: 'clipboard' 
+      });
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+    }
+  };
+  img.src = message.dataUrl;
+}

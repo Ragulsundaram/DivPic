@@ -12,19 +12,35 @@ document.querySelectorAll('input[name="saveOption"]').forEach(radio => {
 });
 
 document.getElementById('captureBtn').addEventListener('click', async () => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  const saveOption = document.querySelector('input[name="saveOption"]:checked').value;
-  
-  const status = document.getElementById('status');
-  status.textContent = 'Select an element on the page...';
-  
-  // Close the popup
-  window.close();
-  
-  chrome.tabs.sendMessage(tab.id, { 
-    action: 'startSelection',
-    saveOption: saveOption 
-  });
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const saveOption = document.querySelector('input[name="saveOption"]:checked').value;
+    
+    const status = document.getElementById('status');
+    status.textContent = 'Select an element on the page...';
+    
+    // Close the popup
+    window.close();
+    
+    await chrome.tabs.sendMessage(tab.id, { 
+      action: 'startSelection',
+      saveOption: saveOption 
+    }).catch(error => {
+      if (error.message.includes('Receiving end does not exist')) {
+        // In the catch block of captureBtn click handler
+        chrome.notifications.create(`refresh-${Date.now()}`, {
+          type: 'basic',
+          title: 'Extension Updated',
+          message: 'Please refresh the page to use the updated extension.',
+          iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+          priority: 2,
+          requireInteraction: false // Changed to false
+        });
+      }
+    });
+  } catch (error) {
+    console.error('Error in capture button click:', error);
+  }
 });
 
 // Listen for messages

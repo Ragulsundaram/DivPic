@@ -6,12 +6,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       format: 'png'
     }).then(dataUrl => {
       console.log('Screenshot captured, sending to content script');
-      chrome.tabs.sendMessage(sender.tab.id, {
-        action: 'cropScreenshot',
-        screenshot: dataUrl,
-        area: message.area,
-        saveOption: message.saveOption
-      });
+      // Wrap the sendMessage in a try-catch to handle disconnected ports
+      try {
+        chrome.tabs.sendMessage(sender.tab.id, {
+          action: 'cropScreenshot',
+          screenshot: dataUrl,
+          area: message.area,
+          saveOption: message.saveOption
+        }).catch(error => {
+          // Handle connection error
+          if (error.message.includes('Receiving end does not exist')) {
+            showRefreshNotification(sender.tab.id);
+          }
+        });
+      } catch (error) {
+        console.error('Error sending message:', error);
+        showRefreshNotification(sender.tab.id);
+      }
     });
   } else if (message.action === 'downloadScreenshot') {
     console.log('Processing screenshot with option:', message.saveOption);
@@ -58,6 +69,54 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       silent: true
     });
   }
+  
+  // Return false as we're not using sendResponse
+  return false;
+});
+
+// Add function to show refresh notification
+function showRefreshNotification(tabId) {
+  chrome.notifications.create(`refresh-${Date.now()}`, {
+    type: 'basic',
+    title: 'Extension Updated',
+    message: 'Please refresh the page to use the updated extension.',
+    iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+    priority: 2,
+    requireInteraction: false // Changed to false
+  });
+}
+
+// Update the command listener to handle connection errors
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command === 'start-selection') {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const { saveOption = 'download' } = await chrome.storage.local.get('saveOption');
+      console.log('Using saved preference:', saveOption);
+      
+      await chrome.tabs.sendMessage(tab.id, { 
+        action: 'startSelection',
+        saveOption: saveOption 
+      }).catch(error => {
+        if (error.message.includes('Receiving end does not exist')) {
+          showRefreshNotification(tab.id);
+        }
+      });
+    } catch (error) {
+      console.error('Error in command listener:', error);
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      showRefreshNotification(tab.id);
+    }
+  }
+});
+
+// Add a connection error handler
+chrome.runtime.onConnect.addListener((port) => {
+  port.onDisconnect.addListener(() => {
+    if (chrome.runtime.lastError) {
+      console.log('Port disconnected due to error:', chrome.runtime.lastError);
+    }
+  });
 });
 
 // Remove the button click listener since we removed the buttons
