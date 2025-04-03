@@ -3,7 +3,7 @@
   "name": "Element Screenshot",
   "version": "1.0",
   "description": "Capture screenshots of HTML elements with ease",
-  "permissions": ["activeTab", "downloads", "notifications"],
+  "permissions": ["activeTab", "downloads", "notifications", "clipboardWrite", "storage"],
   "background": {
     "service_worker": "background.js"
   },

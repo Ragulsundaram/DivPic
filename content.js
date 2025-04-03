@@ -56,8 +56,33 @@ document.addEventListener('click', async (e) => {
         width: rect.width,
         height: rect.height,
         scale: window.devicePixelRatio
-      }
+      },
+      saveOption: window.screenshotSaveOption // Add this line
     });
+  }
+});
+
+// Add message listener for saveOption
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.action === 'startSelection') {
+    window.screenshotSaveOption = message.saveOption;
+    isSelecting = true;
+    document.body.style.cursor = 'crosshair';
+    
+    if (!highlightElement) {
+      highlightElement = document.createElement('div');
+      highlightElement.style.position = 'fixed';
+      highlightElement.style.border = '2px solid #2563eb';
+      highlightElement.style.backgroundColor = 'rgba(37, 99, 235, 0.1)';
+      highlightElement.style.pointerEvents = 'none';
+      highlightElement.style.zIndex = '10000';
+      document.body.appendChild(highlightElement);
+    }
+  } else if (message.action === 'screenshotTaken') {
+    isSelecting = false;
+    if (highlightElement) {
+      highlightElement.style.display = 'none';
+    }
   }
 });
 
@@ -65,6 +90,8 @@ document.addEventListener('click', async (e) => {
 chrome.runtime.onMessage.addListener((message) => {
   if (message.action === 'cropScreenshot') {
     const img = new Image();
+    img.src = message.screenshot;
+    
     img.onload = () => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -86,7 +113,8 @@ chrome.runtime.onMessage.addListener((message) => {
       const croppedDataUrl = canvas.toDataURL('image/png');
       chrome.runtime.sendMessage({
         action: 'downloadScreenshot',
-        dataUrl: croppedDataUrl
+        dataUrl: croppedDataUrl,
+        saveOption: message.saveOption  // Add this line to pass the saveOption
       });
     };
     img.src = message.screenshot;
@@ -100,5 +128,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (highlightOverlay) {
       highlightOverlay.style.display = 'none';
     }
+  }
+});
+
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.action === 'copyToClipboard') {
+    // Create a temporary canvas to handle the clipboard copy
+    const img = new Image();
+    img.onload = async () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      
+      try {
+        // Convert canvas to blob
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        // Create clipboard item and write to clipboard
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'image/png': blob
+          })
+        ]);
+        console.log('Successfully copied to clipboard');
+        chrome.runtime.sendMessage({ 
+          action: 'screenshotTaken', 
+          saveOption: 'clipboard' 
+        });
+      } catch (error) {
+        console.error('Error copying to clipboard:', error);
+      }
+    };
+    img.src = message.dataUrl;
   }
 });
