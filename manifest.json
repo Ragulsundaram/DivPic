@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Capture screenshots of HTML elements with ease. Select any element on the webpage and save or copy the screenshot instantly.",
   "author": "Ragul Sundaram",
-  "homepage_url": "https://github.com/Ragulsundaram/Shotdiv",
+  "homepage_url": "https://github.com/Ragulsundaram/DivPic",
   "permissions": ["activeTab", "downloads", "notifications", "clipboardWrite", "storage"],
   "background": {
     "service_worker": "background.js"

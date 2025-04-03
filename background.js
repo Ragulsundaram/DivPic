@@ -28,27 +28,39 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('Background received message:', message);
 
   if (message.action === 'captureElement') {
+    // Handle asynchronous operation
     chrome.tabs.captureVisibleTab(null, {
       format: 'png'
     }).then(async dataUrl => {
       console.log('Screenshot captured, sending to content script');
-      await sendMessageToTab(sender.tab.id, {
-        action: 'cropScreenshot',
-        screenshot: dataUrl,
-        area: message.area,
-        saveOption: message.saveOption
-      });
+      try {
+        await sendMessageToTab(sender.tab.id, {
+          action: 'cropScreenshot',
+          screenshot: dataUrl,
+          area: message.area,
+          saveOption: message.saveOption
+        });
+        sendResponse({ success: true });
+      } catch (error) {
+        sendResponse({ success: false, error: error.message });
+      }
     }).catch(error => {
       console.error('Error capturing tab:', error);
+      sendResponse({ success: false, error: error.message });
     });
-  } else if (message.action === 'downloadScreenshot') {
-    console.log('Processing screenshot with option:', message.saveOption);
 
+    // Return true to indicate async response
+    return true;
+  } 
+  
+  else if (message.action === 'downloadScreenshot') {
+    // Handle download operation asynchronously
     if (message.saveOption === 'clipboard') {
       sendMessageToTab(sender.tab.id, {
         action: 'copyToClipboard',
         dataUrl: message.dataUrl
-      });
+      }).then(() => sendResponse({ success: true }))
+        .catch(error => sendResponse({ success: false, error: error.message }));
     } else {
       const filename = `screenshot-${Date.now()}.png`;
       chrome.downloads.download({
@@ -64,26 +76,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           requireInteraction: false,
           silent: true
         });
-        sendMessageToTab(sender.tab.id, { 
+        return sendMessageToTab(sender.tab.id, { 
           action: 'screenshotTaken', 
           saveOption: 'download' 
         });
-      }).catch(error => {
-        console.error('Error in download process:', error);
-      });
+      }).then(() => sendResponse({ success: true }))
+        .catch(error => {
+          console.error('Error in download process:', error);
+          sendResponse({ success: false, error: error.message });
+        });
     }
-  } else if (message.action === 'clipboardSuccess') {
-    chrome.notifications.create(`clipboard-${Date.now()}`, {
-      type: 'basic',
-      title: 'Screenshot Copied',
-      message: 'Screenshot has been copied to clipboard',
-      iconUrl: 'images/icon128.png',
-      priority: 2,
-      requireInteraction: false,
-      silent: true
-    });
+    
+    // Return true to indicate async response
+    return true;
   }
-  
+
+  // For synchronous messages or when no response is needed
   return false;
 });
 

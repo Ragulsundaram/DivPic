@@ -14,7 +14,7 @@ A Chrome extension that allows users to capture screenshots of specific HTML ele
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/element-screenshot.git
+git clone https://github.com/Ragulsundaram/DivPic.git
 ```
 2. Open Google Chrome and go to `chrome://extensions/`.
 3. Enable "Developer mode" by toggling the switch in the top right corner.
