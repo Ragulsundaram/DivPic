@@ -13,6 +13,15 @@
       "128": "images/icon128.png"
     }
   },
+  "commands": {
+    "start-selection": {
+      "suggested_key": {
+        "mac": "MacCtrl+Command+E",
+        "default": "Ctrl+Shift+E"
+      },
+      "description": "Start element selection"
+    }
+  },
   "content_scripts": [{
     "matches": ["<all_urls>"],
     "js": ["content.js"]

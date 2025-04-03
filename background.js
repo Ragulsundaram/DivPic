@@ -47,3 +47,11 @@ chrome.notifications.onButtonClicked.addListener((notificationId) => {
     chrome.downloads.showDefaultFolder();
   }
 });
+
+// Add this at the end of the file
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command === 'start-selection') {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    chrome.tabs.sendMessage(tab.id, { action: 'startSelection' });
+  }
+});
